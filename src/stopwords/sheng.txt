@@ -1,0 +1,4 @@
+# basic sheng stopwords
+mambo
+sasa
+msee

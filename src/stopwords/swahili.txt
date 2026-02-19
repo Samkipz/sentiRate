@@ -1,0 +1,8 @@
+# basic swahili stopwords
+na
+ya
+kwa
+ni
+si
+mimi
+sisi
