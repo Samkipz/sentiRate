@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import re
 import altair as alt
 import plotly.express as px
 from src.data.parser import ReviewParser
@@ -80,22 +81,72 @@ def load_models():
     return feats, model, loaded_feat and loaded_model
 
 def generate_recommendations(df, metrics):
-    """Return a list of recommendation strings based on review DataFrame and computed metrics."""
+    """Return a list of recommendation strings based on review DataFrame and computed metrics.
+    Logic tries to be balanced by reporting positive signals as well as areas for improvement.
+    """
     recs = []
     total = len(df)
-    if total > 0:
-        neg = metrics.get('negative_count', 0)
-        if neg / total > 0.5:
-            recs.append("More than half of reviews are negative. Investigate frequent complaints and engage with your customers.")
-        neg_texts = df[df.get('sentiment')=='negative']['clean_text'].astype(str)
-        if not neg_texts.empty:
-            from collections import Counter
-            words = []
-            for t in neg_texts:
-                words.extend(w for w in t.split() if len(w) > 3)
-            common_neg = Counter(words).most_common(5)
-            if common_neg:
-                recs.append("Common negative terms: " + ", ".join(w for w,_ in common_neg))
+    if total == 0:
+        return recs
+
+    pos = metrics.get('positive_count', 0)
+    neg = metrics.get('negative_count', 0)
+    pos_pct = pos / total if total else 0
+    neg_pct = neg / total if total else 0
+
+    # basic sentiment summary
+    if neg_pct > 0.5:
+        recs.append("More than half of reviews are negative. Investigate frequent complaints and engage with your customers.")
+    elif pos_pct > 0.5:
+        recs.append("Majority of reviews are positive. Consider amplifying the messages that resonate with customers.")
+    else:
+        recs.append("Mixed feedback received; dive deeper into common themes on both sides.")
+
+    # compute distinctive terms by comparing negative vs positive
+    from collections import Counter
+    neg_texts = df[df.get('sentiment')=='negative']['clean_text'].astype(str)
+    pos_texts = df[df.get('sentiment')=='positive']['clean_text'].astype(str)
+    # simple word lists to ignore (common words and keywords)
+    ignore = set(["the","and","with","this","that","product","review","buy","order","item"])
+    # positive keywords to avoid flagging
+    pos_keywords = set(["love","great","good","excellent","amazing","best","satisfied","recommend","happy","nzuri","furaha","tamu","poa"])
+
+    def word_counts(texts):
+        ctr = Counter()
+        for t in texts:
+            for w in re.findall(r"\w+", t.lower()):
+                if len(w) > 3 and w not in ignore:
+                    ctr[w] += 1
+        return ctr
+
+    neg_ctr = word_counts(neg_texts)
+    pos_ctr = word_counts(pos_texts)
+
+    # compute words strongly associated with negative reviews
+    distinctive = []
+    for w, cnt in neg_ctr.most_common():
+        if w in pos_keywords or w in ignore:
+            continue
+        if cnt >= 2 and cnt > pos_ctr.get(w, 0):
+            distinctive.append(w)
+        if len(distinctive) >= 5:
+            break
+    if distinctive:
+        recs.append("Distinctive negative terms: " + ", ".join(distinctive))
+
+    # add positive highlights when available
+    if pos_pct >= 0.3:
+        top_pos = []
+        for w, cnt in pos_ctr.most_common():
+            if w in pos_keywords or w in ignore:
+                continue
+            if cnt >= 2:
+                top_pos.append(w)
+            if len(top_pos) >= 5:
+                break
+        if top_pos:
+            recs.append("Positive highlights: " + ", ".join(top_pos))
+
     return recs
 
 

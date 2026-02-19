@@ -50,7 +50,42 @@ class ReviewParser:
         return df[["reviewer_name", "date", "product_tag", "star_rating", "review_text", "detected_language"]]
 
     def parse_pasted_text(self, raw: str) -> pd.DataFrame:
-        # Split blank lines into review blocks
+        # handle table-like paste first (header present)
+        if "\n" in raw and ("\t" in raw or "," in raw):
+            first_line = raw.strip().splitlines()[0].lower()
+            if any(col in first_line for col in ["review_text", "reviewer_name", "star_rating"]):
+                try:
+                    from io import StringIO
+                    df = pd.read_csv(StringIO(raw), sep=None, engine="python", index_col=False, on_bad_lines='skip')
+                    df = df.loc[:, ~df.columns.str.contains('^Unnamed', na=False)]
+                    for col in ["review_text", "reviewer_name", "date", "product_tag", "star_rating"]:
+                        if col not in df.columns:
+                            df[col] = np.nan
+                    df["review_text"] = df["review_text"].fillna("").apply(clean_raw_text)
+                    df["detected_language"] = df["review_text"].apply(auto_detect_language)
+                    return df[["reviewer_name", "date", "product_tag", "star_rating", "review_text", "detected_language"]]
+                except Exception:
+                    pass
+        # if not table, split by lines but treat each line as a record if possible
+        date_pattern = re.compile(r"(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})")
+        lines = [l.strip() for l in raw.splitlines() if l.strip()]
+        if lines and all(date_pattern.search(l) for l in lines):
+            # simple delimited lines, assume order: reviewer,date,product_tag,star_rating,review_text,lang?
+            rows = []
+            for l in lines:
+                parts = re.split(r"\t|,", l)
+                # pad to 6 elements
+                parts += [""] * (6 - len(parts))
+                reviewer, date, product, rating, text, lang = parts[:6]
+                try:
+                    rating = float(rating)
+                except:
+                    rating = np.nan
+                text = clean_raw_text(text)
+                lang = lang or auto_detect_language(text or reviewer)
+                rows.append({"reviewer_name": reviewer, "date": date, "product_tag": product, "star_rating": rating, "review_text": text, "detected_language": lang})
+            return pd.DataFrame(rows)
+        # fallback: split blank lines into review blocks
         blocks = [b.strip() for b in re.split(r"\n\s*\n", raw) if b.strip()]
         rows = []
         # simple regex patterns for date, rating, product
