@@ -36,13 +36,17 @@ class ReviewParser:
         return pd.DataFrame(columns=cols)
 
     def parse_csv(self, path: str) -> pd.DataFrame:
-        df = pd.read_csv(path)
-        # ensure columns
+        # Read CSV without assuming an index column
+        df = pd.read_csv(path, index_col=False, on_bad_lines='skip')
+        # drop any unnamed index columns that may have been created
+        df = df.loc[:, ~df.columns.str.contains('^Unnamed', na=False)]
+        # ensure expected columns exist
         for col in ["review_text", "reviewer_name", "date", "product_tag", "star_rating"]:
             if col not in df.columns:
                 df[col] = np.nan
         df["review_text"] = df["review_text"].fillna("").apply(clean_raw_text)
         df["detected_language"] = df["review_text"].apply(auto_detect_language)
+        # Return only expected columns in correct order
         return df[["reviewer_name", "date", "product_tag", "star_rating", "review_text", "detected_language"]]
 
     def parse_pasted_text(self, raw: str) -> pd.DataFrame:

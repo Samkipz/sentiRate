@@ -15,7 +15,7 @@ This repository contains a lightweight pipeline for parsing, analyzing, and visu
   - Rule-based or ML emotion detector
   - Anomaly detector (duplicate, short review, rating mismatch, optional IsolationForest)
 - **Aggregation & metrics**: compute sentiment ratios, average ratings, emotion distribution.
-- **Streamlit dashboard**: tables, bar/pie charts, histogram, filtering, download enriched CSV, basic/advanced mode.
+- **Streamlit dashboard**: polished interface with tabs (Overview, Charts, Flagged Reviews, Raw Data), interactive metrics cards, bar/pie charts, histograms, time‑series trends, sentiment & emotion proportions, filtering, and a download button. Switch between **Basic** and **Advanced** modes for progressively richer analysis and recommendations.
 
 ## 🏗️ Architecture Overview
 1. **Data layer** (CSV / pasted text)
@@ -65,7 +65,7 @@ Some features (LSTM, embeddings) rely on heavy packages that may not install in 
 streamlit run app.py
 ```
 
-Upload `sample_data/reviews_demo.csv` or paste text to see parsing, sentiment, emotion, and anomalies. Use the sidebar to toggle between **Basic** and **Advanced** analysis.
+Upload `sample_data/reviews_demo.csv` or paste text to see parsing, sentiment, emotion, and anomalies. Use the sidebar to toggle between **Basic** and **Advanced** analysis. In **Advanced** mode the dashboard surfaces emotion trends, rating histograms, flagged/fake reviews and even automatic recommendation insights based on your data.
 
 ## 🧪 Testing
 
