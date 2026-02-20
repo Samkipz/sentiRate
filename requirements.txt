@@ -1,5 +1,3 @@
--e .
-
 # Streamlit depends on Pillow. 9.4.0 was once wheel-friendly but
 # on newer Python releases (3.13+) the wheel is missing and pip falls
 # back to a source build that fails with a KeyError during setup.
@@ -10,9 +8,8 @@
 # but allow upgrades so patches/security fixes can be installed.
 Pillow>=9.4.0,<11
 
-
-pandas
-numpy
+pandas==2.0.3
+numpy==1.24.3
 scikit-learn
 nltk
 langdetect

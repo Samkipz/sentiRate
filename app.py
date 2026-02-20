@@ -460,11 +460,16 @@ def main():
         show_df = display_df[cols_to_show].copy()
         # reset index to ensure clean display
         show_df = show_df.reset_index(drop=True)
-        # aggressively convert all Arrow string types to plain Python objects
+        # Force conversion of ALL columns to Python objects to avoid Arrow serialization issues
+        show_df = show_df.infer_objects(copy=False)
         for col in show_df.columns:
             try:
-                if 'string' in str(show_df[col].dtype).lower():
+                # Convert any string/arrow types to object dtype (plain Python strings)
+                if show_df[col].dtype.name.startswith('string') or 'utf' in show_df[col].dtype.name.lower():
                     show_df[col] = show_df[col].astype('object')
+                elif show_df[col].dtype == 'object':
+                    # Also ensure object columns are pure Python, not Arrow-backed
+                    show_df[col] = show_df[col].astype(str).astype('object')
             except:
                 pass
         if 'detected_language' in show_df.columns:
