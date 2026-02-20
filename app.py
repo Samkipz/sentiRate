@@ -419,7 +419,10 @@ def main():
 
     with tab_flags:
         st.subheader("Suspicious reviews")
-        st.dataframe(df[df["suspicious_flags"]!=""][["reviewer_name","review_text","suspicious_flags"]], use_container_width=True)
+        flags_df = df[df["suspicious_flags"]!=""][["reviewer_name","review_text","suspicious_flags"]].copy()
+        for c in flags_df.select_dtypes(include=["string"]).columns:
+            flags_df[c] = flags_df[c].astype("object")
+        st.dataframe(flags_df, use_container_width=True)
 
     with tab_data:
         st.subheader("Parsed data")
@@ -430,6 +433,9 @@ def main():
         show_df = display_df[cols_to_show].copy()
         # reset index to ensure clean display
         show_df = show_df.reset_index(drop=True)
+        # convert Arrow string types to plain objects before display
+        for c in show_df.select_dtypes(include=["string"]).columns:
+            show_df[c] = show_df[c].astype("object")
         if 'detected_language' in show_df.columns:
             st.dataframe(show_df.style.apply(highlight_non_en, axis=1), use_container_width=True)
         else:
