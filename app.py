@@ -166,6 +166,12 @@ def generate_recommendations(df, metrics):
 
 
 def main():
+    # Initialize session state for file persistence across reruns
+    if "uploaded_data" not in st.session_state:
+        st.session_state.uploaded_data = None
+    if "pasted_data" not in st.session_state:
+        st.session_state.pasted_data = None
+    
     st.sidebar.title("Inputs")
     upload = st.sidebar.file_uploader("Upload CSV", type=["csv"])
     paste = st.sidebar.text_area("Or paste reviews (optional)")
@@ -177,10 +183,28 @@ def main():
         st.info("Run `python scripts/train_models.py` in terminal to train demo artifacts.")
 
     parser = ReviewParser()
+    
+    # Store upload/paste in session state to survive reruns
     if upload is not None:
-        df = parser.parse_csv(upload)
-    elif paste:
-        df = parser.parse_pasted_text(paste)
+        st.session_state.uploaded_data = upload
+        st.session_state.pasted_data = None
+    if paste:
+        st.session_state.pasted_data = paste
+        st.session_state.uploaded_data = None
+    
+    # Use session state to restore data after reruns
+    if st.session_state.uploaded_data is not None:
+        try:
+            df = parser.parse_csv(st.session_state.uploaded_data)
+        except Exception as e:
+            st.error(f"Failed to parse uploaded file: {e}")
+            return
+    elif st.session_state.pasted_data:
+        try:
+            df = parser.parse_pasted_text(st.session_state.pasted_data)
+        except Exception as e:
+            st.error(f"Failed to parse pasted text: {e}")
+            return
     else:
         st.info("Upload a CSV or paste reviews. You can also use sample_data/reviews_demo.csv")
         return
