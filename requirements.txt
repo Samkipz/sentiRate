@@ -7,6 +7,9 @@ streamlit
 plotly
 altair
 joblib
+# Pillow is pulled in by Streamlit; pin to a wheel-friendly version to avoid
+# source-build failures (Python 3.13 on Cloud has no prebuilt wheel for 9.5)
+Pillow==9.4.0
 protobuf<=3.20.3
 tensorflow
 sentence-transformers
