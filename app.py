@@ -166,11 +166,11 @@ def generate_recommendations(df, metrics):
 
 
 def main():
-    # Initialize session state for file persistence across reruns
-    if "uploaded_data" not in st.session_state:
-        st.session_state.uploaded_data = None
-    if "pasted_data" not in st.session_state:
-        st.session_state.pasted_data = None
+    # Initialize session state for data persistence across reruns
+    if "parsed_df" not in st.session_state:
+        st.session_state.parsed_df = None
+    if "data_source" not in st.session_state:
+        st.session_state.data_source = None  # track whether it came from upload or paste
     
     st.sidebar.title("Inputs")
     upload = st.sidebar.file_uploader("Upload CSV", type=["csv"])
@@ -184,27 +184,30 @@ def main():
 
     parser = ReviewParser()
     
-    # Store upload/paste in session state to survive reruns
-    if upload is not None:
-        st.session_state.uploaded_data = upload
-        st.session_state.pasted_data = None
-    if paste:
-        st.session_state.pasted_data = paste
-        st.session_state.uploaded_data = None
-    
-    # Use session state to restore data after reruns
-    if st.session_state.uploaded_data is not None:
+    # Parse new uploads/pastes and cache the DataFrame
+    if upload is not None and st.session_state.data_source != "upload":
         try:
-            df = parser.parse_csv(st.session_state.uploaded_data)
+            st.session_state.parsed_df = parser.parse_csv(upload)
+            st.session_state.data_source = "upload"
+            st.success("File uploaded successfully!")
         except Exception as e:
             st.error(f"Failed to parse uploaded file: {e}")
+            st.session_state.parsed_df = None
             return
-    elif st.session_state.pasted_data:
+    elif paste and paste != st.session_state.get("last_paste", ""):
         try:
-            df = parser.parse_pasted_text(st.session_state.pasted_data)
+            st.session_state.parsed_df = parser.parse_pasted_text(paste)
+            st.session_state.data_source = "paste"
+            st.session_state.last_paste = paste
+            st.success("Reviews pasted successfully!")
         except Exception as e:
             st.error(f"Failed to parse pasted text: {e}")
+            st.session_state.parsed_df = None
             return
+    
+    # Use cached dataframe
+    if st.session_state.parsed_df is not None:
+        df = st.session_state.parsed_df.copy()
     else:
         st.info("Upload a CSV or paste reviews. You can also use sample_data/reviews_demo.csv")
         return
