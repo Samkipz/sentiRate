@@ -1,3 +1,15 @@
+# shim for removed stdlib module `imghdr` (Python 3.13+).
+# Streamlit still does `import imghdr` when handling images, so we
+# preload our own copy from the repo root before pulling in Streamlit.
+import sys, importlib.util, os
+
+shim_path = os.path.join(os.path.dirname(__file__), "imghdr.py")
+if "imghdr" not in sys.modules and os.path.exists(shim_path):
+    spec = importlib.util.spec_from_file_location("imghdr", shim_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)  # type: ignore[attr-defined]
+    sys.modules["imghdr"] = module
+
 import streamlit as st
 import pandas as pd
 import os
