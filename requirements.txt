@@ -7,5 +7,6 @@ streamlit
 plotly
 altair
 joblib
+protobuf<=3.20.3
 tensorflow
 sentence-transformers
