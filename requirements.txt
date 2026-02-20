@@ -14,7 +14,7 @@ numpy>=1.26.0
 scikit-learn
 nltk
 langdetect
-streamlit
+streamlit>=1.40.0
 plotly
 # altair 6+ drops v4 package; pin to <5 so Streamlit (1.x) can
 # still import vegalite.v4.
