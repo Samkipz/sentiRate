@@ -8,8 +8,8 @@
 # but allow upgrades so patches/security fixes can be installed.
 Pillow>=9.4.0,<11
 
-pandas==2.0.3
-numpy==1.24.3
+pandas>=2.1.0
+numpy>=1.26.0
 scikit-learn
 nltk
 langdetect
