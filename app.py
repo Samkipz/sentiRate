@@ -334,7 +334,10 @@ def main():
         if analysis_type == "Advanced" and 'emotion' in df.columns:
             st.subheader("Emotion breakdown")
             if alt:
-                emo_bar = alt.Chart(df).mark_bar().encode(
+                df_chart = df.copy()
+                for c in df_chart.select_dtypes(include=["string"]).columns:
+                    df_chart[c] = df_chart[c].astype("object")
+                emo_bar = alt.Chart(df_chart).mark_bar().encode(
                     x='emotion',
                     y='count()',
                     color='emotion'
@@ -349,7 +352,15 @@ def main():
         if "sentiment" in df.columns:
             st.subheader("Sentiment proportions")
             if alt:
-                chart = alt.Chart(df).mark_bar().encode(
+                # Altair/vega sometimes chokes on pyarrow's LargeUtf8 string
+                # dtype, which can appear when pandas is using the Arrow
+                # extension.  Convert any "string" columns back to plain
+                # Python objects before handing the data to Altair.
+                df_chart = df.copy()
+                for c in df_chart.select_dtypes(include=["string"]).columns:
+                    df_chart[c] = df_chart[c].astype("object")
+
+                chart = alt.Chart(df_chart).mark_bar().encode(
                     x='sentiment',
                     y='count()',
                     color='sentiment'
@@ -362,7 +373,10 @@ def main():
             if 'date' in df.columns:
                 st.subheader("Sentiment over time")
                 if alt:
-                    time_chart = alt.Chart(df).mark_line().encode(
+                    df_chart = df.copy()
+                    for c in df_chart.select_dtypes(include=["string"]).columns:
+                        df_chart[c] = df_chart[c].astype("object")
+                    time_chart = alt.Chart(df_chart).mark_line().encode(
                         x='yearmonth(date):T',
                         y='count()',
                         color='sentiment'
@@ -376,7 +390,10 @@ def main():
             if 'emotion' in df.columns and 'date' in df.columns:
                 st.subheader("Emotion trends")
                 if alt:
-                    emo_time = alt.Chart(df).mark_line().encode(
+                    df_chart = df.copy()
+                    for c in df_chart.select_dtypes(include=["string"]).columns:
+                        df_chart[c] = df_chart[c].astype("object")
+                    emo_time = alt.Chart(df_chart).mark_line().encode(
                         x='yearmonth(date):T',
                         y='count()',
                         color='emotion'
