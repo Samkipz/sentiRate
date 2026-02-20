@@ -237,7 +237,7 @@ def main():
     display_df = df.copy()
     if 'star_rating' in display_df.columns:
         display_df['star_rating'] = pd.to_numeric(display_df['star_rating'], errors='coerce')
-        display_df['star_rating'] = display_df['star_rating'].apply(lambda x: int(x) if pd.notna(x) else '-')
+    # Keep star_rating as numeric with NaN for missing values (avoids Arrow serialization error)
 
     # highlight non-English reviews when showing raw data later
     def highlight_non_en(row):
@@ -461,7 +461,10 @@ def main():
         # reset index to ensure clean display
         show_df = show_df.reset_index(drop=True)
         # Force conversion of ALL columns to Python objects to avoid Arrow serialization issues
-        show_df = show_df.infer_objects(copy=False)
+        show_df = show_df.infer_objects()
+        # Also ensure star_rating is numeric (not '-' strings)
+        if 'star_rating' in show_df.columns:
+            show_df['star_rating'] = pd.to_numeric(show_df['star_rating'], errors='coerce')
         for col in show_df.columns:
             try:
                 # Convert any string/arrow types to object dtype (plain Python strings)

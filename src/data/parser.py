@@ -46,6 +46,8 @@ class ReviewParser:
                 df[col] = np.nan
         df["review_text"] = df["review_text"].fillna("").apply(clean_raw_text)
         df["detected_language"] = df["review_text"].apply(auto_detect_language)
+        # Convert star_rating to numeric, replacing '-' and non-numeric with NaN
+        df["star_rating"] = pd.to_numeric(df["star_rating"].astype(str).str.replace('-', ''), errors='coerce')
         # Return only expected columns in correct order
         return df[["reviewer_name", "date", "product_tag", "star_rating", "review_text", "detected_language"]]
 
