@@ -1,3 +1,5 @@
+-e .
+
 # Streamlit depends on Pillow. 9.4.0 was once wheel-friendly but
 # on newer Python releases (3.13+) the wheel is missing and pip falls
 # back to a source build that fails with a KeyError during setup.
