@@ -1,6 +1,13 @@
-# Pillow is pulled in by Streamlit; pin to a wheel-friendly version to avoid
-# source-build failures (Python 3.13/3.11 on Cloud sometimes tries to build 9.5)
-Pillow==9.4.0
+# Streamlit depends on Pillow. 9.4.0 was once wheel-friendly but
+# on newer Python releases (3.13+) the wheel is missing and pip falls
+# back to a source build that fails with a KeyError during setup.
+# Use a more recent release that publishes prebuilt wheels for all
+# supported interpreters.  See https://pypi.org/project/Pillow/#history
+#
+# pin the minimum version so we don't accidentally regress later,
+# but allow upgrades so patches/security fixes can be installed.
+Pillow>=9.4.0,<11
+
 
 pandas
 numpy
