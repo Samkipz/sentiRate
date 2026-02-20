@@ -460,9 +460,13 @@ def main():
         show_df = display_df[cols_to_show].copy()
         # reset index to ensure clean display
         show_df = show_df.reset_index(drop=True)
-        # convert Arrow string types to plain objects before display
-        for c in show_df.select_dtypes(include=["string"]).columns:
-            show_df[c] = show_df[c].astype("object")
+        # aggressively convert all Arrow string types to plain Python objects
+        for col in show_df.columns:
+            try:
+                if 'string' in str(show_df[col].dtype).lower():
+                    show_df[col] = show_df[col].astype('object')
+            except:
+                pass
         if 'detected_language' in show_df.columns:
             st.dataframe(show_df.style.apply(highlight_non_en, axis=1), use_container_width=True)
         else:
