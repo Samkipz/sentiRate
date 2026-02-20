@@ -16,7 +16,8 @@ nltk
 langdetect
 streamlit
 plotly
-altair
+# altair 6+ drops v4 package; pin to <6 so Streamlit’s import works
+altair>=4.0.0,<6.0.0
 joblib
 # protobuf<=3.20.3  # old pin; kept for backwards compatibility in some environments
 #                       but TensorFlow (if installed) requires a much newer version.
