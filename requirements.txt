@@ -18,6 +18,11 @@ streamlit
 plotly
 altair
 joblib
-protobuf<=3.20.3
-tensorflow
+# protobuf<=3.20.3  # old pin; kept for backwards compatibility in some environments
+#                       but TensorFlow (if installed) requires a much newer version.
+#                       You can remove the restriction entirely if you’re not
+#                       constrained by legacy systems.
+# tensorflow              # optional heavy dependency used only by LSTM/tokenizer
+#                         and model training code.  The dashboard works without
+#                         it; install locally when you need the extra features.
 sentence-transformers
