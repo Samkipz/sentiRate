@@ -14,7 +14,10 @@ import streamlit as st
 import pandas as pd
 import os
 import re
-import altair as alt
+try:
+    import altair as alt
+except ImportError:
+    alt = None
 import plotly.express as px
 from src.data.parser import ReviewParser
 from src.preprocessing.cleaner import TextCleaner
@@ -330,41 +333,58 @@ def main():
 
         if analysis_type == "Advanced" and 'emotion' in df.columns:
             st.subheader("Emotion breakdown")
-            emo_bar = alt.Chart(df).mark_bar().encode(
-                x='emotion',
-                y='count()',
-                color='emotion'
-            )
-            st.altair_chart(emo_bar, use_container_width=True)
+            if alt:
+                emo_bar = alt.Chart(df).mark_bar().encode(
+                    x='emotion',
+                    y='count()',
+                    color='emotion'
+                )
+                st.altair_chart(emo_bar, use_container_width=True)
+            else:
+                # fallback to plotly bar
+                fig = px.bar(df, x='emotion', title='Emotion breakdown')
+                st.plotly_chart(fig, use_container_width=True)
 
     with tab_charts:
         if "sentiment" in df.columns:
             st.subheader("Sentiment proportions")
-            chart = alt.Chart(df).mark_bar().encode(
-                x='sentiment',
-                y='count()',
-                color='sentiment'
-            )
-            st.altair_chart(chart, use_container_width=True)
-
-            if 'date' in df.columns:
-                st.subheader("Sentiment over time")
-                time_chart = alt.Chart(df).mark_line().encode(
-                    x='yearmonth(date):T',
+            if alt:
+                chart = alt.Chart(df).mark_bar().encode(
+                    x='sentiment',
                     y='count()',
                     color='sentiment'
                 )
-                st.altair_chart(time_chart, use_container_width=True)
+                st.altair_chart(chart, use_container_width=True)
+            else:
+                fig = px.bar(df, x='sentiment', title='Sentiment proportions')
+                st.plotly_chart(fig, use_container_width=True)
+
+            if 'date' in df.columns:
+                st.subheader("Sentiment over time")
+                if alt:
+                    time_chart = alt.Chart(df).mark_line().encode(
+                        x='yearmonth(date):T',
+                        y='count()',
+                        color='sentiment'
+                    )
+                    st.altair_chart(time_chart, use_container_width=True)
+                else:
+                    fig2 = px.line(df, x='date', y=df.index, color='sentiment', title='Sentiment over time')
+                    st.plotly_chart(fig2, use_container_width=True)
 
         if analysis_type == "Advanced":
             if 'emotion' in df.columns and 'date' in df.columns:
                 st.subheader("Emotion trends")
-                emo_time = alt.Chart(df).mark_line().encode(
-                    x='yearmonth(date):T',
-                    y='count()',
-                    color='emotion'
-                )
-                st.altair_chart(emo_time, use_container_width=True)
+                if alt:
+                    emo_time = alt.Chart(df).mark_line().encode(
+                        x='yearmonth(date):T',
+                        y='count()',
+                        color='emotion'
+                    )
+                    st.altair_chart(emo_time, use_container_width=True)
+                else:
+                    fig3 = px.line(df, x='date', y=df.index, color='emotion', title='Emotion trends')
+                    st.plotly_chart(fig3, use_container_width=True)
 
             if "star_rating" in df.columns:
                 st.subheader("Rating distribution")
