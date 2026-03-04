@@ -15,4 +15,8 @@ if "imghdr" not in sys.modules and os.path.exists(shim_path):
 
 # NOW we can safely import the actual dashboard code
 # (which itself imports streamlit and all its dependencies)
-from dashboard import *  # noqa: F401, F403
+from dashboard import main
+
+# Run the dashboard
+if __name__ == "__main__":
+    main()

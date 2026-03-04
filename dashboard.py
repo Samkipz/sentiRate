@@ -369,11 +369,11 @@ def main():
                     y='count()',
                     color='emotion'
                 )
-                st.altair_chart(emo_bar, use_container_width=True)
+                st.altair_chart(emo_bar, width='stretch')
             else:
                 # fallback to plotly bar
                 fig = px.bar(df, x='emotion', title='Emotion breakdown')
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
     with tab_charts:
         if "sentiment" in df.columns:
@@ -392,10 +392,10 @@ def main():
                     y='count()',
                     color='sentiment'
                 )
-                st.altair_chart(chart, use_container_width=True)
+                st.altair_chart(chart, width='stretch')
             else:
                 fig = px.bar(df, x='sentiment', title='Sentiment proportions')
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
             if 'date' in df.columns:
                 st.subheader("Sentiment over time")
@@ -408,10 +408,10 @@ def main():
                         y='count()',
                         color='sentiment'
                     )
-                    st.altair_chart(time_chart, use_container_width=True)
+                    st.altair_chart(time_chart, width='stretch')
                 else:
                     fig2 = px.line(df, x='date', y=df.index, color='sentiment', title='Sentiment over time')
-                    st.plotly_chart(fig2, use_container_width=True)
+                    st.plotly_chart(fig2, width='stretch')
 
         if analysis_type == "Advanced":
             if 'emotion' in df.columns and 'date' in df.columns:
@@ -425,15 +425,15 @@ def main():
                         y='count()',
                         color='emotion'
                     )
-                    st.altair_chart(emo_time, use_container_width=True)
+                    st.altair_chart(emo_time, width='stretch')
                 else:
                     fig3 = px.line(df, x='date', y=df.index, color='emotion', title='Emotion trends')
-                    st.plotly_chart(fig3, use_container_width=True)
+                    st.plotly_chart(fig3, width='stretch')
 
             if "star_rating" in df.columns:
                 st.subheader("Rating distribution")
                 hist = px.histogram(df, x='star_rating', nbins=5, title='Star rating distribution')
-                st.plotly_chart(hist, use_container_width=True)
+                st.plotly_chart(hist, width='stretch')
 
             # recommendation insights based on simple heuristics
             st.subheader("Recommendations")
@@ -449,7 +449,7 @@ def main():
         flags_df = df[df["suspicious_flags"]!=""][["reviewer_name","review_text","suspicious_flags"]].copy()
         for c in flags_df.select_dtypes(include=["string"]).columns:
             flags_df[c] = flags_df[c].astype("object")
-        st.dataframe(flags_df, use_container_width=True)
+        st.dataframe(flags_df, width='stretch')
 
     with tab_data:
         st.subheader("Parsed data")
@@ -476,9 +476,9 @@ def main():
             except:
                 pass
         if 'detected_language' in show_df.columns:
-            st.dataframe(show_df.style.apply(highlight_non_en, axis=1), use_container_width=True)
+            st.dataframe(show_df.style.apply(highlight_non_en, axis=1), width='stretch')
         else:
-            st.dataframe(show_df, use_container_width=True)
+            st.dataframe(show_df, width='stretch')
 
     # sidebar download remains
     st.sidebar.download_button("Download enriched CSV", df.to_csv(index=False).encode("utf-8"), file_name="enriched_reviews.csv")
